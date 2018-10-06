@@ -3,6 +3,9 @@ import data.Configuration;
 import data.Game;
 import data.GameDetail;
 import data.Player;
+import io.grpc.Server;
+import io.grpc.ServerBuilder;
+import io.grpc.stub.StreamObserver;
 import io.reactivex.Observable;
 import io.reactivex.ObservableSource;
 import io.reactivex.Observer;
@@ -15,6 +18,7 @@ import okhttp3.OkHttpClient;
 import okhttp3.logging.HttpLoggingInterceptor;
 import org.javacord.api.DiscordApi;
 import org.javacord.api.DiscordApiBuilder;
+import org.javacord.api.entity.channel.TextChannel;
 import retrofit2.Response;
 import retrofit2.Retrofit;
 import retrofit2.adapter.rxjava2.RxJava2CallAdapterFactory;
@@ -23,6 +27,7 @@ import retrofit2.converter.scalars.ScalarsConverterFactory;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
+import java.io.IOException;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.time.ZonedDateTime;
@@ -77,21 +82,29 @@ public class Bot {
 
     private static final String COMMAND_GAMES = "!games";
     private static final String COMMAND_HELP = "!help";
+    private static final String COMMAND_NOTIFY = "!notify";
 
     private static String cookie;
 
     private static final String help = "Supported commands:\n\t!help --> Prints this message\n\t!games --> Lists all available games\n\nI am a bot, beep boop...";
 
-    public static void main(String[] args) {
+    public static void main(String[] args) throws InterruptedException, IOException {
 
+        Futsal futsal = new Futsal();
 
+        Server server = ServerBuilder.forPort(10101).addService(futsal).build();
+
+        server.start();
 
         api.addMessageCreateListener(event -> {
             if (event.getMessage().getContent().equalsIgnoreCase(COMMAND_GAMES)) {
                 getGamesDetail(new Observer<GameDetail>() {
                     @Override
                     public void onSubscribe(Disposable d) {
-
+                        if(event.getMessage().getUserAuthor().isPresent())
+                            event.getChannel().sendMessage("Howdy " + event.getMessage().getUserAuthor().get().getNicknameMentionTag());
+                        else
+                            event.getChannel().sendMessage("Hey stranger...");
                     }
 
                     @Override
@@ -115,11 +128,24 @@ public class Bot {
 
         api.addMessageCreateListener(event -> {
             if (event.getMessage().getContent().equalsIgnoreCase(COMMAND_HELP)) {
+                if(event.getMessage().getUserAuthor().isPresent())
+                    event.getChannel().sendMessage("Howdy " + event.getMessage().getUserAuthor().get().getNicknameMentionTag());
+                else
+                    event.getChannel().sendMessage("Hey stranger...");
+
                 event.getChannel().sendMessage(help);
             }
         });
 
+        api.addMessageCreateListener(event -> {
+            if (event.getMessage().getContent().equalsIgnoreCase(COMMAND_NOTIFY)) {
+                futsal.addTextChannel(event.getChannel());
+            }
+        });
+
         System.out.println("You can invite the bot by using the following url: " + api.createBotInvite());
+
+        server.awaitTermination();
     }
 
     private static void getGames(Observer<String> observer) {
@@ -298,6 +324,29 @@ public class Bot {
         }
 
         return games;
+    }
+
+    private static class Futsal extends FutsalGrpc.FutsalImplBase {
+
+        private List<TextChannel> textChannels = new ArrayList<>();
+
+        void addTextChannel(TextChannel textChannel) {
+            textChannels.add(textChannel);
+        }
+
+
+        @Override
+        public void notify(GameNotification request, StreamObserver<None> responseObserver) {
+            System.out.println(request);
+
+            for (TextChannel textChannel : textChannels) {
+                textChannel.sendMessage("New game folks! " + request.getText());
+            }
+
+
+            responseObserver.onNext(None.newBuilder().build());
+            responseObserver.onCompleted();
+        }
     }
 
 }

@@ -1,14 +1,27 @@
-plugins {
-    id 'java'
+
+apply plugin: 'java'
+apply plugin: 'com.google.protobuf'
+
+sourceSets {
+    main.java.srcDirs += "${protobuf.generatedFilesBaseDir}/main/javalite"
+    main.java.srcDirs += "${protobuf.generatedFilesBaseDir}/main/grpc"
 }
 
 group 'com.migafgarcia'
 version '1.0-SNAPSHOT'
-
 sourceCompatibility = 1.8
 
 repositories {
     mavenCentral()
+}
+
+buildscript {
+    repositories {
+        mavenCentral()
+    }
+    dependencies {
+        classpath 'com.google.protobuf:protobuf-gradle-plugin:0.8.6'
+    }
 }
 
 dependencies {
@@ -24,4 +37,38 @@ dependencies {
     implementation 'io.grpc:grpc-netty-shaded:1.15.1'
     implementation 'io.grpc:grpc-protobuf:1.15.1'
     implementation 'io.grpc:grpc-stub:1.15.1'
+    implementation "com.google.protobuf:protobuf-lite:3.0.1"
+    implementation 'com.googlecode.protobuf-java-format:protobuf-java-format:1.4'
+}
+
+
+
+protobuf {
+    protoc {
+        artifact = 'com.google.protobuf:protoc:3.6.1'
+    }
+    plugins {
+        javalite {
+            artifact = 'com.google.protobuf:protoc-gen-javalite:3.0.0'
+        }
+        grpc {
+            artifact = 'io.grpc:protoc-gen-grpc-java:1.15.1'
+        }
+    }
+
+    generateProtoTasks {
+        all().each { task ->
+            task.builtins {
+                // In most cases you don't need the full Java output
+                // if you use the lite output.
+                remove java
+            }
+            task.plugins {
+                javalite {}
+                grpc {
+                    option 'lite'
+                }
+            }
+        }
+    }
 }
