@@ -1,0 +1,16 @@
+syntax = "proto3";
+option java_multiple_files = true;
+package data.proto;
+
+message GameNotification {
+    string date = 1;
+    string location = 2;
+}
+
+message None {
+
+}
+
+service Futsal {
+    rpc notify(GameNotification) returns (None) {};
+}
