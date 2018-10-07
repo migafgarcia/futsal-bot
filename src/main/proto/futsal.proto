@@ -1,6 +1,6 @@
 syntax = "proto3";
 option java_multiple_files = true;
-//package data.proto;
+package pt.migafgarcia.futsalbot;
 
 message GameNotification {
     string text = 1;
@@ -11,5 +11,5 @@ message None {
 }
 
 service Futsal {
-    rpc notify(GameNotification) returns (None) {};
+    rpc notify(GameNotification) returns (None);
 }

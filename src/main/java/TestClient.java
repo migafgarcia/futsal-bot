@@ -1,13 +1,16 @@
 import io.grpc.ManagedChannel;
 import io.grpc.ManagedChannelBuilder;
 import io.grpc.stub.StreamObserver;
+import pt.migafgarcia.futsalbot.FutsalGrpc;
+import pt.migafgarcia.futsalbot.GameNotification;
+import pt.migafgarcia.futsalbot.None;
 
 public class TestClient {
 
     public static void main(String[] args) throws InterruptedException {
         ManagedChannel channel = ManagedChannelBuilder
-                .forAddress("localhost", 10101)
-                .usePlaintext(true)
+                .forAddress("futsal-bot.duckdns.org", 10101)
+                .usePlaintext()
                 .build();
         FutsalGrpc.FutsalStub stub = FutsalGrpc.newStub(channel);
 

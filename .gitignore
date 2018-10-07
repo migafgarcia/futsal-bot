@@ -88,3 +88,7 @@ modules.xml
 
 journal
 build/
+
+\.gradle/4\.8/
+
+\.gradle/buildOutputCleanup/

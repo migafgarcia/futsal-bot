@@ -19,6 +19,9 @@ import okhttp3.logging.HttpLoggingInterceptor;
 import org.javacord.api.DiscordApi;
 import org.javacord.api.DiscordApiBuilder;
 import org.javacord.api.entity.channel.TextChannel;
+import pt.migafgarcia.futsalbot.FutsalGrpc;
+import pt.migafgarcia.futsalbot.GameNotification;
+import pt.migafgarcia.futsalbot.None;
 import retrofit2.Response;
 import retrofit2.Retrofit;
 import retrofit2.adapter.rxjava2.RxJava2CallAdapterFactory;
@@ -46,7 +49,7 @@ public class Bot {
 
     static {
         try {
-            configuration = new Gson().fromJson(new FileReader("/home/mgarcia/Desktop/futsal.conf"), Configuration.class);
+            configuration = new Gson().fromJson(new FileReader("futsal.conf"), Configuration.class);
         } catch (FileNotFoundException e) {
             e.printStackTrace();
         }
@@ -340,7 +343,7 @@ public class Bot {
             System.out.println(request);
 
             for (TextChannel textChannel : textChannels) {
-                textChannel.sendMessage("New game folks! " + request.getText());
+                textChannel.sendMessage("Yo! " + request.getText());
             }
 
 
