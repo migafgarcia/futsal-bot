@@ -35,6 +35,7 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Scanner;
@@ -102,6 +103,9 @@ public class Bot {
         api.addMessageCreateListener(event -> {
             if (event.getMessage().getContent().equalsIgnoreCase(COMMAND_GAMES)) {
                 getGamesDetail(new Observer<GameDetail>() {
+
+                    StringBuilder games = new StringBuilder();
+
                     @Override
                     public void onSubscribe(Disposable d) {
                         if(event.getMessage().getUserAuthor().isPresent())
@@ -113,7 +117,11 @@ public class Bot {
                     @Override
                     public void onNext(GameDetail gameDetail) {
                         System.out.println(gameDetail.toString());
-                        event.getChannel().sendMessage(gameDetail.toString());
+                        games.append(gameDetail.toString());
+                        games.append('\n');
+                        games.append('\n');
+
+
                     }
 
                     @Override
@@ -123,6 +131,7 @@ public class Bot {
 
                     @Override
                     public void onComplete() {
+                        event.getChannel().sendMessage(games.toString());
                         event.getChannel().sendMessage("I am a bot, beep boop...");
                     }
                 });
@@ -331,7 +340,7 @@ public class Bot {
 
     private static class Futsal extends FutsalGrpc.FutsalImplBase {
 
-        private List<TextChannel> textChannels = new ArrayList<>();
+        private Set<TextChannel> textChannels = new HashSet<>();
 
         void addTextChannel(TextChannel textChannel) {
             textChannels.add(textChannel);
@@ -343,7 +352,7 @@ public class Bot {
             System.out.println(request);
 
             for (TextChannel textChannel : textChannels) {
-                textChannel.sendMessage("Yo! " + request.getText());
+                textChannel.sendMessage("@everyone " + request.getText());
             }
 
 
