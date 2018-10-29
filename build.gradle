@@ -58,7 +58,15 @@ dependencies {
 
 protobuf {
     protoc {
-        artifact = 'com.google.protobuf:protoc:3.6.1'
+        if (project.hasProperty('protoc')) {
+
+            path = project.protoc
+
+            } else {
+
+            artifact = "com.google.protobuf:protoc:3.6.1"
+        }
+        path = '/usr/bin/protoc'
     }
     plugins {
         javalite {
